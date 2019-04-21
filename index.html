@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mandelbrot set</title>
+    <meta charset="UTF-8" />
+  </head>
+  <body>
+    <figure>
+      <figcaption>
+        This is a
+        <a href="https://en.wikipedia.org/wiki/Mandelbrot_set"
+          >Mandelbrot set</a
+        >
+        image rendered using JS.
+      </figcaption>
+      <canvas id="canvas" width="600" height="400" style="border: 1px solid black"></canvas>
+    </figure>
+    <output id="output"></output>
+    <output id="ms"></output>
+    <output id="scale"></output>
+
+    <figure>
+      <figcaption>
+        This one is rendered using GLSL.
+      </figcaption>
+      <canvas id="canvas2" width="600" height="400" style="border: 1px solid black"></canvas>
+    </figure>
+    <output id="output2"></output>
+    <output id="ms2"></output>
+    <output id="scale2"></output>
+    <script src="src/index.js"></script>
+  </body>
+</html>
