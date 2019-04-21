@@ -23,7 +23,16 @@ uniform float gLEFT;
 uniform float gTOP;
 uniform int depthScale;
 
-float mandelbrot(vec2 pos){
+// hsv2rgb source: https://stackoverflow.com/a/17897228
+// All components are in the range [0…1], including hue.
+vec3 hsv2rgb(vec3 c)
+{
+    vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+vec3 mandelbrot(vec2 pos){
   float zx = pos.x * scaleX + gLEFT; // 3.5 - 2.5;
   float zy = pos.y * scaleY + gTOP; // 2.0 - 1.5;
   
@@ -34,6 +43,7 @@ float mandelbrot(vec2 pos){
   
   // float itteration = 1.0;
   float itteration = 0.0;
+  float count = 0.0;
   
   for(int i = 0; i < maxItter; ++i){
     if (zx * zx + zy * zy > 4.0) break;
@@ -45,16 +55,18 @@ float mandelbrot(vec2 pos){
     
     // itteration *= 0.95;
     // itteration += 1.0 / float(maxItter);
+    count += 1.0;
     if (i > depthScale - 255) itteration += 1.0 / 255.0;
   }
   // return 1.0 - itteration;
-  return itteration;
+  // return itteration;
+  if (count == float(maxItter)) return vec3(0.0, 0.0, 0.0);
+  return hsv2rgb(vec3(count / 100.0, 0.9, 1.0));
 }
 
 void main( void ) {
   vec2 position = gl_FragCoord.xy / resolution;
-  vec3 color = vec3(0.0);
-        color += mandelbrot(position);
+  vec3 color = mandelbrot(position);
   gl_FragColor = vec4(color, 1.0 );
 }`
 
@@ -153,17 +165,13 @@ export function drawGL(
 
   var a_scaleX = gl.getUniformLocation(program, "scaleX");
   gl.uniform1f(a_scaleX, scaleX);
-  console.log('scaleX', scaleX);
   var a_gLEFT = gl.getUniformLocation(program, "gLEFT");
   gl.uniform1f(a_gLEFT, gLEFT);
-  console.log('gLEFT', gLEFT);
 
   var a_scaleY = gl.getUniformLocation(program, "scaleY");
   gl.uniform1f(a_scaleY, scaleY);
-  console.log('scaleY', scaleY);
   var a_gTOP = gl.getUniformLocation(program, "gTOP");
   gl.uniform1f(a_gTOP, gTOP);
-  console.log('gTOP', gTOP);
 
   var a_depthScale = gl.getUniformLocation(program, "depthScale");
   gl.uniform1i(a_depthScale, depthScale);

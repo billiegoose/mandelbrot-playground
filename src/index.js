@@ -12,11 +12,12 @@ const WIDTH = canvas.clientWidth;
 const HEIGHT = canvas.clientHeight;
 console.log(WIDTH, HEIGHT);
 
-let bounds = [{r: -2, i: -1}, {r: 1, i: 1}];
+// let bounds = [{r: -2, i: -1}, {r: 1, i: 1}];
 // let bounds = [
 //   { r: -1.0239051845552098, i: -0.36249787751053836 },
 //   { r: -1.0239051835666346, i: -0.362497876851488 }
 // ];
+let bounds = [{"r":0.2361513689220573,"i":-0.5210970613723728},{"r":0.23662026741217732,"i":-0.5207844623789595}]
 
 const makeXY = bounds => {
   const gWIDTH = bounds[1].r - bounds[0].r;
@@ -41,7 +42,7 @@ const iter = (r, i, depthScale) => {
   let zr = 0;
   let zi = 0;
   let n = 0;
-  for (n = 0; n < depthScale; n++) {
+  for (n = 0; n < 1024; n++) {
     zr = pzr * pzr - pzi * pzi + r;
     zi = 2 * pzr * pzi + i;
 
@@ -53,6 +54,32 @@ const iter = (r, i, depthScale) => {
   }
   return n;
 };
+
+// HSVtoRGB source: https://stackoverflow.com/a/17243070
+function HSVtoRGB(h, s, v) {
+  var r, g, b, i, f, p, q, t;
+  if (arguments.length === 1) {
+      s = h.s, v = h.v, h = h.h;
+  }
+  i = Math.floor(h * 6);
+  f = h * 6 - i;
+  p = v * (1 - s);
+  q = v * (1 - f * s);
+  t = v * (1 - (1 - f) * s);
+  switch (i % 6) {
+      case 0: r = v, g = t, b = p; break;
+      case 1: r = q, g = v, b = p; break;
+      case 2: r = p, g = v, b = t; break;
+      case 3: r = p, g = q, b = v; break;
+      case 4: r = t, g = p, b = v; break;
+      case 5: r = v, g = p, b = q; break;
+  }
+  return {
+      r: Math.round(r * 255),
+      g: Math.round(g * 255),
+      b: Math.round(b * 255)
+  };
+}
 
 const drawCanvas = (
   canvasWidth,
@@ -76,18 +103,25 @@ const drawCanvas = (
   const scaleY = -gHEIGHT / (canvasHeight - 1);
   document.getElementById('scale').value = `${(2 / gHEIGHT).toExponential(2)}`;
 
-  let val;
+  // let val;
+  let color;
   for (let y = 0; y < canvasHeight; y++) {
     for (let x = 0; x < canvasWidth; x++) {
-      val =
-        Math.floor(
-          iter(x * scaleX + gLEFT, y * scaleY + gTOP, depthScale)
-        ) -
-        (depthScale - 255);
-      min = Math.min(min, val);
-      data[n] = val;
-      data[n + 1] = val;
-      data[n + 2] = val;
+      // val =
+      //   Math.floor(
+      //     iter(x * scaleX + gLEFT, y * scaleY + gTOP, depthScale)
+      //   ) -
+      //   (depthScale - 255);
+      let count = iter(x * scaleX + gLEFT, y * scaleY + gTOP, depthScale);
+      color = count === 1024 ? {r: 0, g: 0, b: 0} : HSVtoRGB(
+        count / 100.0,
+        0.9,
+        1.0
+      );
+      // min = Math.min(min, val);
+      data[n] = color.r;
+      data[n + 1] = color.g;
+      data[n + 2] = color.b;
       data[n + 3] = 255;
       n += 4;
     }
@@ -114,6 +148,7 @@ const draw = () => {
   ctx.putImageData(imageData, 0, 0);
   let finish = performance.now();
   document.getElementById("ms").value = Math.floor(finish - start) + " ms";
+  console.log(JSON.stringify(bounds));
 };
 
 draw();
@@ -136,6 +171,7 @@ const draw2 = () => {
   console.log("draw2");
   let finish = performance.now();
   document.getElementById("ms2").value = Math.floor(finish - start) + " ms";
+  console.log(JSON.stringify(bounds));
 };
 
 draw2();
@@ -157,6 +193,7 @@ canvas.addEventListener("wheel", event => {
   bounds[0] = add(bounds[0], c);
   bounds[1] = add(bounds[1], c);
   draw();
+  draw2();
 });
 
 
@@ -177,7 +214,6 @@ canvas2.addEventListener("wheel", event => {
   bounds[0] = add(bounds[0], c);
   bounds[1] = add(bounds[1], c);
   draw2();
-  draw();
 });
 
 let prevMouseXY = null;
@@ -198,6 +234,7 @@ canvas.addEventListener(
       }
       prevMouseXY = [event.offsetY, event.offsetX];
       draw();
+      draw2();
     }
     event.preventDefault();
   }),
@@ -224,7 +261,6 @@ canvas2.addEventListener(
       }
       prevMouseXY = [event.offsetY, event.offsetX];
       draw2();
-      draw();
     }
     event.preventDefault();
   }),
