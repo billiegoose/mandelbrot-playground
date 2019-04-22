@@ -2,6 +2,8 @@
 import { drawGL } from "./shader.js"
 // import { add as addRust, iter as iterRust } from "./draw.rs";
 
+const hasExperimentalIsInputPending = navigator.scheduling && navigator.scheduling.isInputPending;
+
 // console.log(addRust(2, 3), iterRust(0, 0, 255));
 const canvas = document.getElementById("canvas");
 const canvas2 = document.getElementById("canvas2");
@@ -108,8 +110,6 @@ const drawCanvas = (
 
   // let val;
   let color;
-  const hasExperimentalIsInputPending = navigator.scheduling && navigator.scheduling.isInputPending;
-
   for (let y = 0; y < canvasHeight; y++) {
     for (let x = 0; x < canvasWidth; x++) {
       let count = Math.max(0, iter(x * scaleX + gLEFT, y * scaleY + gTOP));
@@ -230,32 +230,37 @@ canvas2.addEventListener("wheel", event => {
 let prevMouseXY = null;
 let isMouseDown = false;
 
-canvas.addEventListener(
-  "mousemove",
-  debounce(event => {
-    const xy = makeXY(bounds);
-    const c = xy(event.offsetY, event.offsetX);
-    document.getElementById("output").value = iter(c.r, c.i).toFixed(2);
-    if (isMouseDown) {
-      if (prevMouseXY) {
-        let prevC = xy(...prevMouseXY);
-        let diff = add(mult(c, -1), prevC);
-        bounds[0] = add(bounds[0], diff);
-        bounds[1] = add(bounds[1], diff);
-      }
-      prevMouseXY = [event.offsetY, event.offsetX];
-      draw();
-      draw2();
+const canvasOnMouseMove = event => {
+  const xy = makeXY(bounds);
+  const c = xy(event.offsetY, event.offsetX);
+  document.getElementById("output").value = iter(c.r, c.i).toFixed(2);
+  if (isMouseDown) {
+    if (prevMouseXY) {
+      let prevC = xy(...prevMouseXY);
+      let diff = add(mult(c, -1), prevC);
+      bounds[0] = add(bounds[0], diff);
+      bounds[1] = add(bounds[1], diff);
     }
-    event.preventDefault();
-  }),
-  16
-);
+    prevMouseXY = [event.offsetY, event.offsetX];
+    draw();
+    draw2();
+  }
+  event.preventDefault();
+}
+
+if (hasExperimentalIsInputPending) {
+  canvas.addEventListener("mousemove", canvasOnMouseMove);
+} else {
+  canvas.addEventListener(
+    "mousemove",
+    debounce(canvasOnMouseMove),
+    16
+  );
+}
 
 canvas.addEventListener("mousedown", event => {
   isMouseDown = true;
 });
-
 
 canvas2.addEventListener(
   "mousemove",
