@@ -104,7 +104,7 @@ const drawCanvas = (
   const gHEIGHT = upperBoundi - lowerBoundi;
   const gTOP = upperBoundi;
   const scaleY = -gHEIGHT / (canvasHeight - 1);
-  document.getElementById('scale').value = `${(2 / gHEIGHT).toExponential(2)}`;
+  document.getElementById('scale').value = (2 / gHEIGHT).toExponential(2);
 
   // let val;
   let color;
@@ -143,7 +143,7 @@ const draw = () => {
   console.log("draw");
   ctx.putImageData(imageData, 0, 0);
   let finish = performance.now();
-  document.getElementById("ms").value = Math.floor(finish - start) + " ms";
+  document.getElementById("ms").value = Math.floor(finish - start);
   console.log(JSON.stringify(bounds));
 };
 
@@ -165,8 +165,11 @@ const draw2 = () => {
 
   console.log("draw2");
   let finish = performance.now();
-  document.getElementById("ms2").value = Math.floor(finish - start) + " ms";
+  document.getElementById("ms2").value = Math.floor(finish - start);
   console.log(JSON.stringify(bounds));
+  // compute scale - redundant but needed so we can print the value
+  const gHEIGHT = bounds[1].i - bounds[0].i;
+  document.getElementById('scale2').value = (2 / gHEIGHT).toExponential(2);
 };
 
 draw2();
@@ -219,7 +222,7 @@ canvas.addEventListener(
   debounce(event => {
     const xy = makeXY(bounds);
     const c = xy(event.offsetY, event.offsetX);
-    document.getElementById("output").value = iter(c.r, c.i).toFixed(2) + " iterations; ";
+    document.getElementById("output").value = iter(c.r, c.i).toFixed(2);
     if (isMouseDown) {
       if (prevMouseXY) {
         let prevC = xy(...prevMouseXY);
@@ -246,7 +249,8 @@ canvas2.addEventListener(
   debounce(event => {
     const xy = makeXY(bounds);
     const c = xy(event.offsetY, event.offsetX);
-    document.getElementById("output").value = iter(c.r, c.i) + " iterations; ";
+    document.getElementById("output2").value = iter(c.r, c.i).toFixed(2);
+
     if (isMouseDown) {
       if (prevMouseXY) {
         let prevC = xy(...prevMouseXY);
