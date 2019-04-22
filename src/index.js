@@ -124,18 +124,18 @@ const drawCanvas = (
       data[n + 2] = color.b;
       data[n + 3] = 255;
       n += 4;
-      if (hasExperimentalIsInputPending) {
-        if (navigator.scheduling.isInputPending(['wheel'])) {
-          console.log('wheel break!')
-          return false;
-        }
-        if (
-          isMouseDown
-          && navigator.scheduling.isInputPending(['mousemove'])
-          && !navigator.scheduling.isInputPending(['mouseup'])
-        ) {
-          return false;
-        }
+    }
+    if (hasExperimentalIsInputPending) {
+      if (navigator.scheduling.isInputPending(['wheel'])) {
+        console.log('wheel break!')
+        return false;
+      }
+      if (
+        isMouseDown
+        && navigator.scheduling.isInputPending(['mousemove'])
+        && !navigator.scheduling.isInputPending(['mouseup'])
+      ) {
+        return false;
       }
     }
   }
