@@ -129,8 +129,11 @@ const drawCanvas = (
           console.log('wheel break!')
           return false;
         }
-        if (isMouseDown && navigator.scheduling.isInputPending(['mousemove'])) {
-          console.log('mouse break!')
+        if (
+          isMouseDown
+          && navigator.scheduling.isInputPending(['mousemove'])
+          && !navigator.scheduling.isInputPending(['mouseup'])
+        ) {
           return false;
         }
       }
