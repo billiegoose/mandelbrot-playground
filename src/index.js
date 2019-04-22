@@ -29,28 +29,30 @@ const makeXY = bounds => {
   return (r, c) => ({ r: c * scaleX + gLEFT, i: r * scaleY + gTOP });
 };
 
-let depthScale = 255;
-
 const add = (c1, c2) => ({ r: c1.r + c2.r, i: c1.i + c2.i });
 
 const mult = (c, scaler) => ({ r: c.r * scaler, i: c.i * scaler });
 
 // Note: iter and iterRust seem to be about the same speed. Probably any speed gains are offset by the back-and-forth between JS and Rust.
-const iter = (r, i, depthScale) => {
+const iter = (r, i) => {
   let pzr = 0;
-  let pzi = 0;
+  let pzrs = 0;
+  let pzis = 0;
   let zr = 0;
   let zi = 0;
   let n = 0;
   for (n = 0; n < 1024; n++) {
-    zr = pzr * pzr - pzi * pzi + r;
-    zi = 2 * pzr * pzi + i;
-
-    if (zr * zr + zi * zi > 4) {
+    if (pzrs + pzis > 4) {
       return n;
     }
+    zr = pzrs - pzis + r;
+    zi = pzr * zi;
+    zi += zi;
+    zi += i;
+
     pzr = zr;
-    pzi = zi;
+    pzrs = pzr * pzr;
+    pzis = zi * zi;
   }
   return n;
 };
@@ -88,7 +90,6 @@ const drawCanvas = (
   lowerBoundi,
   upperBoundr,
   upperBoundi,
-  depthScale,
   data
 ) => {
   let n = 0;
@@ -107,12 +108,7 @@ const drawCanvas = (
   let color;
   for (let y = 0; y < canvasHeight; y++) {
     for (let x = 0; x < canvasWidth; x++) {
-      // val =
-      //   Math.floor(
-      //     iter(x * scaleX + gLEFT, y * scaleY + gTOP, depthScale)
-      //   ) -
-      //   (depthScale - 255);
-      let count = iter(x * scaleX + gLEFT, y * scaleY + gTOP, depthScale);
+      let count = iter(x * scaleX + gLEFT, y * scaleY + gTOP);
       color = count === 1024 ? {r: 0, g: 0, b: 0} : HSVtoRGB(
         count / 100.0,
         0.9,
@@ -126,21 +122,19 @@ const drawCanvas = (
       n += 4;
     }
   }
-  depthScale += min;
-  return depthScale;
+  return;
 };
 
 const draw = () => {
   let start = performance.now();
 
-  depthScale = drawCanvas(
+  drawCanvas(
     WIDTH,
     HEIGHT,
     bounds[0].r,
     bounds[0].i,
     bounds[1].r,
     bounds[1].i,
-    depthScale,
     imageData.data
   );
 
@@ -164,8 +158,7 @@ const draw2 = () => {
     bounds[0].r,
     bounds[0].i,
     bounds[1].r,
-    bounds[1].i,
-    depthScale
+    bounds[1].i
   );
 
   console.log("draw2");
@@ -224,7 +217,7 @@ canvas.addEventListener(
   debounce(event => {
     const xy = makeXY(bounds);
     const c = xy(event.offsetY, event.offsetX);
-    document.getElementById("output").value = iter(c.r, c.i, depthScale) + " iterations; ";
+    document.getElementById("output").value = iter(c.r, c.i) + " iterations; ";
     if (isMouseDown) {
       if (prevMouseXY) {
         let prevC = xy(...prevMouseXY);
@@ -251,7 +244,7 @@ canvas2.addEventListener(
   debounce(event => {
     const xy = makeXY(bounds);
     const c = xy(event.offsetY, event.offsetX);
-    document.getElementById("output").value = iter(c.r, c.i, depthScale) + " iterations; ";
+    document.getElementById("output").value = iter(c.r, c.i) + " iterations; ";
     if (isMouseDown) {
       if (prevMouseXY) {
         let prevC = xy(...prevMouseXY);

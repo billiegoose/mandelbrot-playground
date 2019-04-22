@@ -21,7 +21,6 @@ uniform float scaleX;
 uniform float scaleY;
 uniform float gLEFT;
 uniform float gTOP;
-uniform int depthScale;
 
 // hsv2rgb source: https://stackoverflow.com/a/17897228
 // All components are in the range [0…1], including hue.
@@ -36,16 +35,14 @@ vec3 mandelbrot(vec2 pos){
   float zx = pos.x * scaleX + gLEFT; // 3.5 - 2.5;
   float zy = pos.y * scaleY + gTOP; // 2.0 - 1.5;
   
-  const int maxItter = 1024;
+  const int maxIter = 1024;
   
   float cx = zx * 1.0;
   float cy = zy * 1.0;
   
-  // float itteration = 1.0;
-  float itteration = 0.0;
   float count = 0.0;
   
-  for(int i = 0; i < maxItter; ++i){
+  for(int i = 0; i < maxIter; ++i){
     if (zx * zx + zy * zy > 4.0) break;
     
     float temp = zx * zx - zy * zy;
@@ -53,15 +50,11 @@ vec3 mandelbrot(vec2 pos){
     zy = 2.0 * zx * zy + cy;
     zx = temp + cx;
     
-    // itteration *= 0.95;
-    // itteration += 1.0 / float(maxItter);
     count += 1.0;
-    if (i > depthScale - 255) itteration += 1.0 / 255.0;
   }
-  // return 1.0 - itteration;
-  // return itteration;
-  if (count == float(maxItter)) return vec3(0.0, 0.0, 0.0);
-  return hsv2rgb(vec3(count / 100.0, 0.9, 1.0));
+  if (count == float(maxIter)) return vec3(0.0, 0.0, 0.0);
+  float smoothingMagic = 1.0 - log( (log2(zy * zy + zx * zx) / 2.0) / log(2.0) ) / log(2.0);
+  return hsv2rgb(vec3((count + smoothingMagic) / 100.0, 0.9, 1.0));
 }
 
 void main( void ) {
@@ -93,9 +86,6 @@ var scaleY = gl.getUniformLocation(program, "scaleY");
 gl.uniform1f(scaleY, 2.0);
 var gTOP = gl.getUniformLocation(program, "gTOP");
 gl.uniform1f(gTOP, -1);
-
-var depthScale = gl.getUniformLocation(program, "depthScale");
-gl.uniform1i(depthScale, 255);
 
 gl.enableVertexAttribArray(0);
 const buffer = gl.createBuffer();
@@ -149,8 +139,7 @@ export function drawGL(
   lowerBoundr,
   lowerBoundi,
   upperBoundr,
-  upperBoundi,
-  depthScale
+  upperBoundi
 ) {
   const gWIDTH = upperBoundr - lowerBoundr;
   const gLEFT = lowerBoundr;
@@ -172,9 +161,6 @@ export function drawGL(
   gl.uniform1f(a_scaleY, scaleY);
   var a_gTOP = gl.getUniformLocation(program, "gTOP");
   gl.uniform1f(a_gTOP, gTOP);
-
-  var a_depthScale = gl.getUniformLocation(program, "depthScale");
-  gl.uniform1i(a_depthScale, depthScale);
 
   gl.enableVertexAttribArray(0);
   const buffer = gl.createBuffer();
