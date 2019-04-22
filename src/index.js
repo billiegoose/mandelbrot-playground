@@ -108,6 +108,8 @@ const drawCanvas = (
 
   // let val;
   let color;
+  const hasExperimentalIsInputPending = navigator.scheduling && navigator.scheduling.isInputPending;
+
   for (let y = 0; y < canvasHeight; y++) {
     for (let x = 0; x < canvasWidth; x++) {
       let count = Math.max(0, iter(x * scaleX + gLEFT, y * scaleY + gTOP));
@@ -122,6 +124,9 @@ const drawCanvas = (
       data[n + 2] = color.b;
       data[n + 3] = 255;
       n += 4;
+      if (hasExperimentalIsInputPending) {
+        if (navigator.scheduling.isInputPending(['wheel'])) break;
+      }
     }
   }
   return;
