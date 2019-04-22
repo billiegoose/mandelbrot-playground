@@ -125,7 +125,14 @@ const drawCanvas = (
       data[n + 3] = 255;
       n += 4;
       if (hasExperimentalIsInputPending) {
-        if (navigator.scheduling.isInputPending(['wheel'])) break;
+        if (navigator.scheduling.isInputPending(['wheel'])) {
+          console.log('wheel break!')
+          break;
+        }
+        if (isMouseDown && navigator.scheduling.isInputPending(['mousemove'])) {
+          console.log('mouse break!')
+          break;
+        }
       }
     }
   }
