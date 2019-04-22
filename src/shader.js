@@ -9,10 +9,11 @@ gl_PointSize = 600.0;
 
 const fragmentShaderSource = `
 #ifdef GL_ES
-precision mediump float;
+precision highp float;
 #endif
 
 #extension GL_OES_standard_derivatives : enable
+#extension GL_ARB_gpu_shader_fp64 : enable
 
 uniform float time;
 uniform vec2 mouse;
@@ -32,8 +33,8 @@ vec3 hsv2rgb(vec3 c)
 }
 
 vec3 mandelbrot(vec2 pos){
-  float zx = pos.x * scaleX + gLEFT; // 3.5 - 2.5;
-  float zy = pos.y * scaleY + gTOP; // 2.0 - 1.5;
+  float zx = pos.x * scaleX + gLEFT;
+  float zy = pos.y * scaleY + gTOP;
   
   const int maxIter = 1024;
   

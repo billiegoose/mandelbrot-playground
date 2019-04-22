@@ -43,7 +43,7 @@ const iter = (r, i) => {
   let n = 0;
   for (n = 0; n < 1024; n++) {
     if (pzrs + pzis > 4) {
-      return n;
+      break;
     }
     zr = pzrs - pzis + r;
     zi = pzr * zi;
@@ -54,7 +54,9 @@ const iter = (r, i) => {
     pzrs = pzr * pzr;
     pzis = zi * zi;
   }
-  return n;
+  if (n === 1024) return n;
+  const smoothingMagic = 1.0 - Math.log( (Math.log2(pzrs + pzis) / 2.0) / Math.log(2.0) ) / Math.log(2.0);
+  return n + smoothingMagic;
 };
 
 // HSVtoRGB source: https://stackoverflow.com/a/17243070
@@ -108,7 +110,7 @@ const drawCanvas = (
   let color;
   for (let y = 0; y < canvasHeight; y++) {
     for (let x = 0; x < canvasWidth; x++) {
-      let count = iter(x * scaleX + gLEFT, y * scaleY + gTOP);
+      let count = Math.max(0, iter(x * scaleX + gLEFT, y * scaleY + gTOP));
       color = count === 1024 ? {r: 0, g: 0, b: 0} : HSVtoRGB(
         count / 100.0,
         0.9,
@@ -217,7 +219,7 @@ canvas.addEventListener(
   debounce(event => {
     const xy = makeXY(bounds);
     const c = xy(event.offsetY, event.offsetX);
-    document.getElementById("output").value = iter(c.r, c.i) + " iterations; ";
+    document.getElementById("output").value = iter(c.r, c.i).toFixed(2) + " iterations; ";
     if (isMouseDown) {
       if (prevMouseXY) {
         let prevC = xy(...prevMouseXY);
