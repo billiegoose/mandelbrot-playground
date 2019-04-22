@@ -127,22 +127,22 @@ const drawCanvas = (
       if (hasExperimentalIsInputPending) {
         if (navigator.scheduling.isInputPending(['wheel'])) {
           console.log('wheel break!')
-          break;
+          return false;
         }
         if (isMouseDown && navigator.scheduling.isInputPending(['mousemove'])) {
           console.log('mouse break!')
-          break;
+          return false;
         }
       }
     }
   }
-  return;
+  return true;
 };
 
 const draw = () => {
   let start = performance.now();
 
-  drawCanvas(
+  let finished = drawCanvas(
     WIDTH,
     HEIGHT,
     bounds[0].r,
@@ -151,6 +151,7 @@ const draw = () => {
     bounds[1].i,
     imageData.data
   );
+  if (!finished) return;
 
   console.log("draw");
   ctx.putImageData(imageData, 0, 0);
