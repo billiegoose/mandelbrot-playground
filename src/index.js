@@ -1,5 +1,11 @@
-"use strict";
+import { HSVtoRGB } from "./utils/HSVtoRGB.js"
 import { drawGL } from "./shader.js"
+import { iter } from "./utils/iter.js"
+import { debounce } from "./utils/debounce.js"
+import { zoom } from "./utils/zoom.js"
+import { evalPoint } from "./utils/evalPoint.js"
+import { pan } from './utils/pan.js'
+
 // import { add as addRust, iter as iterRust } from "./draw.rs";
 
 const hasExperimentalIsInputPending = navigator.scheduling && navigator.scheduling.isInputPending;
@@ -20,72 +26,6 @@ console.log(WIDTH, HEIGHT);
 //   { r: -1.0239051835666346, i: -0.362497876851488 }
 // ];
 let bounds = [{"r":0.2361513689220573,"i":-0.5210970613723728},{"r":0.23662026741217732,"i":-0.5207844623789595}]
-
-const makeXY = bounds => {
-  const gWIDTH = bounds[1].r - bounds[0].r;
-  const gHEIGHT = bounds[1].i - bounds[0].i;
-  const gLEFT = bounds[0].r;
-  const gTOP = bounds[1].i;
-  const scaleX = gWIDTH / (WIDTH - 1);
-  const scaleY = -gHEIGHT / (HEIGHT - 1);
-  return (r, c) => ({ r: c * scaleX + gLEFT, i: r * scaleY + gTOP });
-};
-
-const add = (c1, c2) => ({ r: c1.r + c2.r, i: c1.i + c2.i });
-
-const mult = (c, scaler) => ({ r: c.r * scaler, i: c.i * scaler });
-
-// Note: iter and iterRust seem to be about the same speed. Probably any speed gains are offset by the back-and-forth between JS and Rust.
-const iter = (r, i) => {
-  let pzr = 0;
-  let pzrs = 0;
-  let pzis = 0;
-  let zr = 0;
-  let zi = 0;
-  let n = 0;
-  for (n = 0; n < 1024; n++) {
-    if (pzrs + pzis > 4) {
-      break;
-    }
-    zr = pzrs - pzis + r;
-    zi = pzr * zi;
-    zi += zi;
-    zi += i;
-
-    pzr = zr;
-    pzrs = pzr * pzr;
-    pzis = zi * zi;
-  }
-  if (n === 1024) return n;
-  const smoothingMagic = 1.0 - Math.log( (Math.log2(pzrs + pzis) / 2.0) / Math.log(2.0) ) / Math.log(2.0);
-  return n + smoothingMagic;
-};
-
-// HSVtoRGB source: https://stackoverflow.com/a/17243070
-function HSVtoRGB(h, s, v) {
-  var r, g, b, i, f, p, q, t;
-  if (arguments.length === 1) {
-      s = h.s, v = h.v, h = h.h;
-  }
-  i = Math.floor(h * 6);
-  f = h * 6 - i;
-  p = v * (1 - s);
-  q = v * (1 - f * s);
-  t = v * (1 - (1 - f) * s);
-  switch (i % 6) {
-      case 0: r = v, g = t, b = p; break;
-      case 1: r = q, g = v, b = p; break;
-      case 2: r = p, g = v, b = t; break;
-      case 3: r = p, g = q, b = v; break;
-      case 4: r = t, g = p, b = v; break;
-      case 5: r = v, g = p, b = q; break;
-  }
-  return {
-      r: Math.round(r * 255),
-      g: Math.round(g * 255),
-      b: Math.round(b * 255)
-  };
-}
 
 const drawCanvas = (
   canvasWidth,
@@ -164,8 +104,6 @@ const draw = () => {
 };
 
 draw();
-draw();
-draw();
 
 const draw2 = () => {
   let start = performance.now();
@@ -191,64 +129,34 @@ const draw2 = () => {
 draw2();
 
 canvas.addEventListener("wheel", event => {
-  const xy = makeXY(bounds);
-  const c = xy(event.offsetY, event.offsetX);
-  const negc = mult(c, -1);
   event.preventDefault();
-  // Compute new bounds
-  // 1. offset
-  bounds[0] = add(bounds[0], negc);
-  bounds[1] = add(bounds[1], negc);
-  // 2. scale
-  const scale = Math.max(1 + event.deltaY * 0.01, 0.7);
-  bounds[0] = mult(bounds[0], scale);
-  bounds[1] = mult(bounds[1], scale);
-  // 3. onset
-  bounds[0] = add(bounds[0], c);
-  bounds[1] = add(bounds[1], c);
+  bounds = zoom(event.offsetX, event.offsetY, event.deltaY, bounds, {WIDTH, HEIGHT})
   draw();
   draw2();
 });
 
 
 canvas2.addEventListener("wheel", event => {
-  const xy = makeXY(bounds);
-  const c = xy(event.offsetY, event.offsetX);
-  const negc = mult(c, -1);
   event.preventDefault();
-  // Compute new bounds
-  // 1. offset
-  bounds[0] = add(bounds[0], negc);
-  bounds[1] = add(bounds[1], negc);
-  // 2. scale
-  const scale = Math.max(1 + event.deltaY * 0.01, 0.7);
-  bounds[0] = mult(bounds[0], scale);
-  bounds[1] = mult(bounds[1], scale);
-  // 3. onset
-  bounds[0] = add(bounds[0], c);
-  bounds[1] = add(bounds[1], c);
+  bounds = zoom(event.offsetX, event.offsetY, event.deltaY, bounds, {WIDTH, HEIGHT})
   draw2();
 });
 
 let prevMouseXY = null;
 let isMouseDown = false;
 
+
 const canvasOnMouseMove = event => {
-  const xy = makeXY(bounds);
-  const c = xy(event.offsetY, event.offsetX);
-  document.getElementById("output").value = iter(c.r, c.i).toFixed(2);
+  event.preventDefault();
+  document.getElementById("output").value = evalPoint(event.offsetX, event.offsetY, bounds, {WIDTH, HEIGHT}).toFixed(2);
   if (isMouseDown) {
     if (prevMouseXY) {
-      let prevC = xy(...prevMouseXY);
-      let diff = add(mult(c, -1), prevC);
-      bounds[0] = add(bounds[0], diff);
-      bounds[1] = add(bounds[1], diff);
+      bounds = pan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
     }
-    prevMouseXY = [event.offsetY, event.offsetX];
+    prevMouseXY = [event.offsetX, event.offsetY];
     draw();
     draw2();
   }
-  event.preventDefault();
 }
 
 if (hasExperimentalIsInputPending) {
@@ -268,21 +176,15 @@ canvas.addEventListener("mousedown", event => {
 canvas2.addEventListener(
   "mousemove",
   debounce(event => {
-    const xy = makeXY(bounds);
-    const c = xy(event.offsetY, event.offsetX);
-    document.getElementById("output2").value = iter(c.r, c.i).toFixed(2);
-
+    event.preventDefault();
+    document.getElementById("output2").value = evalPoint(event.offsetX, event.offsetY, bounds, {WIDTH, HEIGHT}).toFixed(2);
     if (isMouseDown) {
       if (prevMouseXY) {
-        let prevC = xy(...prevMouseXY);
-        let diff = add(mult(c, -1), prevC);
-        bounds[0] = add(bounds[0], diff);
-        bounds[1] = add(bounds[1], diff);
-      }
-      prevMouseXY = [event.offsetY, event.offsetX];
+        bounds = pan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
+        }
+      prevMouseXY = [event.offsetX, event.offsetY];
       draw2();
     }
-    event.preventDefault();
   }),
   16
 );
@@ -296,36 +198,8 @@ document.addEventListener("mouseup", event => {
   prevMouseXY = null;
 });
 
-// https://github.com/hayes/just-debounce/blob/master/index.js
-function debounce(fn, delay, at_start, guarantee) {
-  var timeout;
-  var args;
-  var self;
+var htmlCanvas = document.getElementById("canvas_worker");
+var offscreen = htmlCanvas.transferControlToOffscreen();
 
-  return function debounced() {
-    self = this;
-    args = Array.prototype.slice.call(arguments);
-
-    if (timeout && (at_start || guarantee)) {
-      return;
-    } else if (!at_start) {
-      clear();
-
-      timeout = setTimeout(run, delay);
-      return timeout;
-    }
-
-    timeout = setTimeout(clear, delay);
-    fn.apply(self, args);
-
-    function run() {
-      clear();
-      fn.apply(self, args);
-    }
-
-    function clear() {
-      clearTimeout(timeout);
-      timeout = null;
-    }
-  };
-}
+var worker = new Worker("worker.js"); 
+worker.postMessage({WIDTH, HEIGHT, canvas: offscreen}, [offscreen]);

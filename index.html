@@ -23,6 +23,17 @@
 
     <figure>
       <figcaption>
+        This one is rendered in a Worker via OffscreenCanvas API.
+      </figcaption>
+      <canvas id="canvas_worker" width="600" height="400" style="border: 1px solid black"></canvas>
+      <br>
+      <output id="ms_worker"></output>ms,
+      <output id="scale_worker"></output> zoom,
+      <output id="output_worker"></output> iterations
+    </figure>
+
+    <figure>
+      <figcaption>
         This one is rendered using GLSL.
       </figcaption>
       <canvas id="canvas2" width="600" height="400" style="border: 1px solid black"></canvas>
