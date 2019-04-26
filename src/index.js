@@ -9,7 +9,7 @@ import Decimal from "decimal.js"
 import { zoom as bigZoom } from './utils/decimal/zoom.js'
 import { pan as bigPan } from './utils/decimal/pan.js'
 
-// Decimal.set({ precision: 100 })
+Decimal.set({ precision: 100 })
 
 // import { add as addRust, iter as iterRust } from "./draw.rs";
 
@@ -152,6 +152,7 @@ draw2();
 canvas.addEventListener("wheel", event => {
   event.preventDefault();
   bounds = zoom(event.offsetX, event.offsetY, event.deltaY, bounds, {WIDTH, HEIGHT})
+  bigBounds = bigZoom(event.offsetX, event.offsetY, event.deltaY, bigBounds, {WIDTH, HEIGHT})
   draw();
   draw2();
   draw3();
@@ -171,6 +172,7 @@ canvas2.addEventListener("wheel", event => {
 canvas3.addEventListener("wheel", event => {
   event.preventDefault();
   bounds = zoom(event.offsetX, event.offsetY, event.deltaY, bounds, {WIDTH, HEIGHT})
+  bigBounds = bigZoom(event.offsetX, event.offsetY, event.deltaY, bigBounds, {WIDTH, HEIGHT})
   draw2();
   draw3();
 });
@@ -184,6 +186,7 @@ const canvasOnMouseMove = event => {
   if (isMouseDown) {
     if (prevMouseXY) {
       bounds = pan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
+      bigBounds = bigPan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bigBounds, {WIDTH, HEIGHT})
     }
     prevMouseXY = [event.offsetX, event.offsetY];
     draw();
@@ -236,6 +239,7 @@ canvas3.addEventListener(
     if (isMouseDown) {
       if (prevMouseXY) {
         bounds = pan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
+        bigBounds = bigPan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bigBounds, {WIDTH, HEIGHT})
       }
       prevMouseXY = [event.offsetX, event.offsetY];
       draw3();
@@ -273,7 +277,7 @@ const draw4 = (force) => {
   if ('OffscreenCanvas' in window) {
     if (force || !workerBusy) {
       bigworkerBusy = performance.now();
-      bigworker.postMessage({bounds: bigBounds})
+      bigworker.postMessage({bounds: JSON.parse(JSON.stringify(bigBounds))})
     } else {
       finalDraw3()
     }

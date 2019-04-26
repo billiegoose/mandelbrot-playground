@@ -2,6 +2,8 @@ import { HSVtoRGB } from './utils/HSVtoRGB.js'
 import { iter } from './utils/decimal/iter.js'
 import Decimal from 'decimal.js'
 
+Decimal.set({ precision: 100 })
+
 var ctx
 var WIDTH
 var HEIGHT
@@ -29,7 +31,6 @@ onmessage = function(evt) {
     var canvas = evt.data.canvas;
     ctx = canvas.getContext("2d");
     imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    draw();
   }
   if (evt.data.bounds) {
     bounds = [
@@ -41,7 +42,9 @@ onmessage = function(evt) {
         "r": new Decimal(evt.data.bounds[1].r),
         "i": new Decimal(evt.data.bounds[1].i)
       }
-    ]
+    ];
+    console.log(JSON.stringify(bounds))
+    draw();
   }
 };
 

@@ -21,7 +21,6 @@ export const iter = (r, i) => {
     pzis = zi.times(zi);
   }
   if (n === 1024) return n;
-  // const smoothingMagic = 1.0 - Math.log( (Math.log2(pzrs + pzis) / 2.0) / Math.log(2.0) ) / Math.log(2.0);
-  // return n + smoothingMagic;
-  return n;
+  const smoothingMagic = 1.0 - Math.log( (Math.log2(pzrs.toNumber() + pzis.toNumber()) / 2.0) / Math.log(2.0) ) / Math.log(2.0);
+  return n + smoothingMagic;
 };
