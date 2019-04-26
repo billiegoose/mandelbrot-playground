@@ -9,6 +9,7 @@ let bounds = [{"r":0.2361513689220573,"i":-0.5210970613723728},{"r":0.2366202674
 
 
 onmessage = function(evt) {
+  console.log(evt.data)
   if (evt.data.WIDTH) {
     WIDTH = evt.data.WIDTH
   }
@@ -20,8 +21,10 @@ onmessage = function(evt) {
     ctx = canvas.getContext("2d");
     imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     draw();
-  } else if (evt.data.bounds) {
-
+  }
+  if (evt.data.bounds) {
+    bounds = evt.data.bounds
+    draw();
   }
 };
 
@@ -40,11 +43,12 @@ const draw = () => {
   );
   if (!finished) return;
 
-  console.log("draw");
+  console.log("draw3");
   ctx.putImageData(imageData, 0, 0);
   let finish = performance.now();
+  self.postMessage({done: true})
   // document.getElementById("ms").value = Math.floor(finish - start);
-  console.log(JSON.stringify(bounds));
+  // console.log(JSON.stringify(bounds));
 };
 
 const drawCanvas = (
@@ -57,7 +61,6 @@ const drawCanvas = (
   data
 ) => {
   let n = 0;
-  let min = 255;
 
   const gWIDTH = upperBoundr - lowerBoundr;
   const gLEFT = lowerBoundr;
@@ -66,7 +69,6 @@ const drawCanvas = (
   const gHEIGHT = upperBoundi - lowerBoundi;
   const gTOP = upperBoundi;
   const scaleY = -gHEIGHT / (canvasHeight - 1);
-  // document.getElementById('scale').value = (2 / gHEIGHT).toExponential(2);
 
   // let val;
   let color;
@@ -78,7 +80,6 @@ const drawCanvas = (
         0.9,
         1.0
       );
-      // min = Math.min(min, val);
       data[n] = color.r;
       data[n + 1] = color.g;
       data[n + 2] = color.b;

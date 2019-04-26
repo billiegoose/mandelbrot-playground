@@ -20,6 +20,12 @@ const WIDTH = canvas.clientWidth;
 const HEIGHT = canvas.clientHeight;
 console.log(WIDTH, HEIGHT);
 
+var canvas3 = document.getElementById("canvas_worker");
+var offscreen = canvas3.transferControlToOffscreen();
+
+var worker = new Worker("worker.js");
+worker.postMessage({WIDTH, HEIGHT, canvas: offscreen}, [offscreen]);
+
 // let bounds = [{r: -2, i: -1}, {r: 1, i: 1}];
 // let bounds = [
 //   { r: -1.0239051845552098, i: -0.36249787751053836 },
@@ -96,7 +102,6 @@ const draw = () => {
   );
   if (!finished) return;
 
-  console.log("draw");
   ctx.putImageData(imageData, 0, 0);
   let finish = performance.now();
   document.getElementById("ms").value = Math.floor(finish - start);
@@ -117,7 +122,6 @@ const draw2 = () => {
     bounds[1].i
   );
 
-  console.log("draw2");
   let finish = performance.now();
   document.getElementById("ms2").value = Math.floor(finish - start);
   console.log(JSON.stringify(bounds));
@@ -133,6 +137,7 @@ canvas.addEventListener("wheel", event => {
   bounds = zoom(event.offsetX, event.offsetY, event.deltaY, bounds, {WIDTH, HEIGHT})
   draw();
   draw2();
+  draw3();
 });
 
 
@@ -140,11 +145,18 @@ canvas2.addEventListener("wheel", event => {
   event.preventDefault();
   bounds = zoom(event.offsetX, event.offsetY, event.deltaY, bounds, {WIDTH, HEIGHT})
   draw2();
+  draw3();
+});
+
+canvas3.addEventListener("wheel", event => {
+  event.preventDefault();
+  bounds = zoom(event.offsetX, event.offsetY, event.deltaY, bounds, {WIDTH, HEIGHT})
+  draw2();
+  draw3();
 });
 
 let prevMouseXY = null;
 let isMouseDown = false;
-
 
 const canvasOnMouseMove = event => {
   event.preventDefault();
@@ -156,6 +168,7 @@ const canvasOnMouseMove = event => {
     prevMouseXY = [event.offsetX, event.offsetY];
     draw();
     draw2();
+    draw3();
   }
 }
 
@@ -183,10 +196,31 @@ canvas2.addEventListener(
         bounds = pan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
         }
       prevMouseXY = [event.offsetX, event.offsetY];
+      draw3();
       draw2();
     }
   }),
   16
+);
+
+canvas3.addEventListener("mousedown", event => {
+  isMouseDown = true;
+});
+
+canvas3.addEventListener(
+  "mousemove",
+  event => {
+    event.preventDefault();
+    document.getElementById("output3").value = evalPoint(event.offsetX, event.offsetY, bounds, {WIDTH, HEIGHT}).toFixed(2);
+    if (isMouseDown) {
+      if (prevMouseXY) {
+        bounds = pan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
+        }
+      prevMouseXY = [event.offsetX, event.offsetY];
+      draw3();
+      draw2();
+    }
+  }
 );
 
 canvas2.addEventListener("mousedown", event => {
@@ -198,8 +232,24 @@ document.addEventListener("mouseup", event => {
   prevMouseXY = null;
 });
 
-var htmlCanvas = document.getElementById("canvas_worker");
-var offscreen = htmlCanvas.transferControlToOffscreen();
+var workerBusy = false;
+const draw3 = (force) => {
+  console.log('busy', workerBusy)
+  if (force || !workerBusy) {
+    workerBusy = performance.now();
+    worker.postMessage({bounds})
+  } else {
+    finalDraw3()
+  }
+}
 
-var worker = new Worker("worker.js"); 
-worker.postMessage({WIDTH, HEIGHT, canvas: offscreen}, [offscreen]);
+const finalDraw3 = debounce(() => draw3(true), 400)
+
+worker.onmessage = (evt) => {
+  console.log(evt)
+  if (evt.data.done) {
+    let finish = performance.now();
+    document.getElementById("ms3").value = Math.floor(finish - workerBusy);
+    workerBusy = null;
+  }
+}
