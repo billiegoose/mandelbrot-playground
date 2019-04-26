@@ -5,6 +5,11 @@ import { debounce } from "./utils/debounce.js"
 import { zoom } from "./utils/zoom.js"
 import { evalPoint } from "./utils/evalPoint.js"
 import { pan } from './utils/pan.js'
+import Decimal from "decimal.js"
+import { zoom as bigZoom } from './utils/decimal/zoom.js'
+import { pan as bigPan } from './utils/decimal/pan.js'
+
+// Decimal.set({ precision: 100 })
 
 // import { add as addRust, iter as iterRust } from "./draw.rs";
 
@@ -13,6 +18,12 @@ const hasExperimentalIsInputPending = navigator.scheduling && navigator.scheduli
 // console.log(addRust(2, 3), iterRust(0, 0, 255));
 const canvas = document.getElementById("canvas");
 const canvas2 = document.getElementById("canvas2");
+const canvas3 = document.getElementById("canvas_worker");
+const canvas4 = document.getElementById("canvas4");
+
+var worker = new Worker("worker.js");
+var bigworker = new Worker("bigworker.js");
+
 const ctx = canvas.getContext("2d");
 const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
@@ -20,11 +31,6 @@ const WIDTH = canvas.clientWidth;
 const HEIGHT = canvas.clientHeight;
 console.log(WIDTH, HEIGHT);
 
-var canvas3 = document.getElementById("canvas_worker");
-var offscreen = canvas3.transferControlToOffscreen();
-
-var worker = new Worker("worker.js");
-worker.postMessage({WIDTH, HEIGHT, canvas: offscreen}, [offscreen]);
 
 // let bounds = [{r: -2, i: -1}, {r: 1, i: 1}];
 // let bounds = [
@@ -32,6 +38,19 @@ worker.postMessage({WIDTH, HEIGHT, canvas: offscreen}, [offscreen]);
 //   { r: -1.0239051835666346, i: -0.362497876851488 }
 // ];
 let bounds = [{"r":0.2361513689220573,"i":-0.5210970613723728},{"r":0.23662026741217732,"i":-0.5207844623789595}]
+let bigBounds = [
+  {
+    "r": new Decimal("0.2361513689220573"),
+    "i": new Decimal("-0.5210970613723728")
+  },
+  {
+    "r": new Decimal("0.23662026741217732"),
+    "i": new Decimal("-0.5207844623789595")
+  }
+]
+
+
+console.log(bigBounds)
 
 const drawCanvas = (
   canvasWidth,
@@ -105,7 +124,6 @@ const draw = () => {
   ctx.putImageData(imageData, 0, 0);
   let finish = performance.now();
   document.getElementById("ms").value = Math.floor(finish - start);
-  console.log(JSON.stringify(bounds));
 };
 
 draw();
@@ -124,7 +142,6 @@ const draw2 = () => {
 
   let finish = performance.now();
   document.getElementById("ms2").value = Math.floor(finish - start);
-  console.log(JSON.stringify(bounds));
   // compute scale - redundant but needed so we can print the value
   const gHEIGHT = bounds[1].i - bounds[0].i;
   document.getElementById('scale2').value = (2 / gHEIGHT).toExponential(2);
@@ -144,6 +161,9 @@ canvas.addEventListener("wheel", event => {
 canvas2.addEventListener("wheel", event => {
   event.preventDefault();
   bounds = zoom(event.offsetX, event.offsetY, event.deltaY, bounds, {WIDTH, HEIGHT})
+  bigBounds = bigZoom(event.offsetX, event.offsetY, event.deltaY, bigBounds, {WIDTH, HEIGHT})
+  console.log(JSON.stringify(bounds));
+  console.log(JSON.stringify(bigBounds));
   draw2();
   draw3();
 });
@@ -194,7 +214,8 @@ canvas2.addEventListener(
     if (isMouseDown) {
       if (prevMouseXY) {
         bounds = pan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
-        }
+        bigBounds = bigPan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bigBounds, {WIDTH, HEIGHT})
+      }
       prevMouseXY = [event.offsetX, event.offsetY];
       draw3();
       draw2();
@@ -215,13 +236,15 @@ canvas3.addEventListener(
     if (isMouseDown) {
       if (prevMouseXY) {
         bounds = pan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
-        }
+      }
       prevMouseXY = [event.offsetX, event.offsetY];
       draw3();
       draw2();
     }
   }
 );
+
+canvas4.addEventListener('click', () => draw4())
 
 canvas2.addEventListener("mousedown", event => {
   isMouseDown = true;
@@ -233,23 +256,54 @@ document.addEventListener("mouseup", event => {
 });
 
 var workerBusy = false;
+var bigworkerBusy = false;
 const draw3 = (force) => {
-  console.log('busy', workerBusy)
-  if (force || !workerBusy) {
-    workerBusy = performance.now();
-    worker.postMessage({bounds})
-  } else {
-    finalDraw3()
+  if ('OffscreenCanvas' in window) {
+    if (force || !workerBusy) {
+      workerBusy = performance.now();
+      worker.postMessage({bounds})
+    } else {
+      finalDraw3()
+    }
+  }
+}
+const finalDraw3 = debounce(() => draw3(true), 400)
+
+const draw4 = (force) => {
+  if ('OffscreenCanvas' in window) {
+    if (force || !workerBusy) {
+      bigworkerBusy = performance.now();
+      bigworker.postMessage({bounds: bigBounds})
+    } else {
+      finalDraw3()
+    }
   }
 }
 
-const finalDraw3 = debounce(() => draw3(true), 400)
-
-worker.onmessage = (evt) => {
-  console.log(evt)
-  if (evt.data.done) {
-    let finish = performance.now();
-    document.getElementById("ms3").value = Math.floor(finish - workerBusy);
-    workerBusy = null;
+if ('OffscreenCanvas' in window) {
+  for (let el of document.getElementsByClassName('noOffscreen')) {
+    el.style.display = 'none';
+  }
+  var offscreen = canvas3.transferControlToOffscreen();
+  worker.postMessage({WIDTH, HEIGHT, canvas: offscreen}, [offscreen]);
+  worker.onmessage = (evt) => {
+    if (evt.data.done) {
+      let finish = performance.now();
+      document.getElementById("ms3").value = Math.floor(finish - workerBusy);
+      workerBusy = null;
+    }
+  }
+  var offscreen = canvas4.transferControlToOffscreen();
+  bigworker.postMessage({WIDTH, HEIGHT, canvas: offscreen}, [offscreen]);
+  bigworker.onmessage = (evt) => {
+    if (evt.data.done) {
+      let finish = performance.now();
+      document.getElementById("ms4").value = Math.floor(finish - workerBusy);
+      bigworkerBusy = null;
+    }
+  }
+} else {
+  for (let el of document.getElementsByClassName('offscreen')) {
+    el.style.display = 'none';
   }
 }

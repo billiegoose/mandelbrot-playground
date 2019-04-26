@@ -1,12 +1,13 @@
 import { HSVtoRGB } from './utils/HSVtoRGB.js'
 import { iter } from './utils/iter.js'
+import { iter as bigIter } from './utils/decimal/iter.js'
+import Decimal from 'decimal.js'
 
 var ctx
 var WIDTH
 var HEIGHT
 var imageData
 let bounds = [{"r":0.2361513689220573,"i":-0.5210970613723728},{"r":0.23662026741217732,"i":-0.5207844623789595}]
-
 
 onmessage = function(evt) {
   console.log(evt.data)
@@ -25,6 +26,18 @@ onmessage = function(evt) {
   if (evt.data.bounds) {
     bounds = evt.data.bounds
     draw();
+  }
+  if (evt.data.bigBounds) {
+    bigBounds = [
+      {
+        "r": new Decimal(evt.data.bigBounds[0].r),
+        "i": new Decimal(evt.data.bigBounds[0].i)
+      },
+      {
+        "r": new Decimal(evt.data.bigBounds[1].r),
+        "i": new Decimal(evt.data.bigBounds[1].i)
+      }
+    ]
   }
 };
 
@@ -47,8 +60,6 @@ const draw = () => {
   ctx.putImageData(imageData, 0, 0);
   let finish = performance.now();
   self.postMessage({done: true})
-  // document.getElementById("ms").value = Math.floor(finish - start);
-  // console.log(JSON.stringify(bounds));
 };
 
 const drawCanvas = (
@@ -90,3 +101,43 @@ const drawCanvas = (
   return true;
 };
 
+
+const bigDrawCanvas = (
+  canvasWidth,
+  canvasHeight,
+  lowerBoundr,
+  lowerBoundi,
+  upperBoundr,
+  upperBoundi,
+  data
+) => {
+  let n = 0;
+
+  const gWIDTH = upperBoundr.minus(lowerBoundr);
+  const gLEFT = lowerBoundr;
+  const scaleX = gWIDTH.dividedBy(canvasWidth);
+
+  const gHEIGHT = upperBoundi.minus(lowerBoundi);
+  const gTOP = upperBoundi;
+  const scaleY = gHEIGHT.dividedBy(canvasHeight);
+
+  // let val;
+  let color;
+  for (let y = 0; y < canvasHeight; y++) {
+    for (let x = 0; x < canvasWidth; x++) {
+      let count = Math.max(0, bigIter(scaleX.times(x).plus(gLEFT), scaleY.times(-y).plus(gTOP)));
+      color = count === 1024 ? {r: 0, g: 0, b: 0} : HSVtoRGB(
+        count / 100.0,
+        0.9,
+        1.0
+      );
+      data[n] = color.r;
+      data[n + 1] = color.g;
+      data[n + 2] = color.b;
+      data[n + 3] = 255;
+      n += 4;
+    }
+    console.log((y / 4).toFixed(0) + '%')
+  }
+  return true;
+};

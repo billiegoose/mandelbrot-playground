@@ -3,7 +3,7 @@ export function lerp2d (x, y, bounds, { WIDTH, HEIGHT}) {
   const gHEIGHT = bounds[1].i - bounds[0].i;
   const gLEFT = bounds[0].r;
   const gTOP = bounds[1].i;
-  const scaleX = gWIDTH / (WIDTH - 1);
-  const scaleY = -gHEIGHT / (HEIGHT - 1);
+  const scaleX = gWIDTH / WIDTH;
+  const scaleY = -gHEIGHT / HEIGHT;
   return { r: x * scaleX + gLEFT, i: y * scaleY + gTOP };
 }

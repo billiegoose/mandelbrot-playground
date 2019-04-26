@@ -12,8 +12,7 @@ export const iter = (r, i) => {
     }
     zr = pzrs - pzis + r;
     zi = pzr * zi;
-    zi += zi;
-    zi += i;
+    zi += zi + i;
 
     pzr = zr;
     pzrs = pzr * pzr;
