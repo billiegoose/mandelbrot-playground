@@ -61,7 +61,7 @@ void main( void ) {
   gl_FragColor = vec4(color, 1.0 );
 }`
 
-let gl = getContext(document.getElementById("canvas2"));
+let gl = getContext(document.getElementById("canvas"));
 
 gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 gl.clearColor(0.0, 0.0, 0.0, 1.0);

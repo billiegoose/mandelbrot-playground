@@ -17,44 +17,11 @@
       <figcaption>
         GLSL renderer. Fastest. 32-bit float precision. It pixelates at around 1+e5 zoom.
       </figcaption>
-      <canvas id="canvas2" width="600" height="400" style="border: 1px solid black"></canvas>
+      <canvas id="canvas" width="400" height="400" style="border: 1px solid black"></canvas>
       <br>
       <output id="ms2"></output>ms,
       <output id="scale2"></output> zoom,
       <output id="output2"></output> iterations
-    </figure>
-
-    <figure class="noOffscreen">
-      <figcaption>
-        JS renderer. Slugish. 64-bit float precision. It pixelates at around 1+e14 zoom.
-      </figcaption>
-      <canvas id="canvas" width="600" height="400" style="border: 1px solid black"></canvas>
-      <br>
-      <output id="ms"></output>ms,
-      <output id="scale"></output> zoom,
-      <output id="output"></output> iterations
-    </figure>
-
-    <figure class="offscreen">
-      <figcaption>
-        JS renderer + OffscreenCanvas. Slugish. 64-bit float precision. It pixelates at around 1+e14 zoom.
-      </figcaption>
-      <canvas id="canvas_worker" width="600" height="400" style="border: 1px solid black"></canvas>
-      <br>
-      <output id="ms3"></output>ms,
-      <output id="scale3"></output> zoom,
-      <output id="output3"></output> iterations
-    </figure>
-
-    <figure>
-      <figcaption>
-        <a href="https://github.com/MikeMcl/decimal.js/">decimal.js</a> + OffscreenCanvas. Unbearably slow. 100 digits of precision. Probably pixelates around 1+e98 zoom?
-      </figcaption>
-      <canvas id="canvas4" width="600" height="400" style="border: 1px solid black"></canvas>
-      <br>
-      <output id="ms4"></output>ms,
-      <output id="scale4"></output> zoom,
-      <output id="output4"></output> iterations
     </figure>
 
     <script src="src/index.js"></script>
