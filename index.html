@@ -4,25 +4,37 @@
     <title>Mandelbrot set</title>
     <meta charset="UTF-8" />
     <meta http-equiv="origin-trial" content="Am9i9HRrRcdOEbdop+0Ldv0ZyxMckdpwhE2slPfAW7J/izZ3e2xTp2b8Ky77maXaub7YJUalL9gtC9XbdgYkCQoAAABmeyJvcmlnaW4iOiJodHRwczovL3dtaGlsdG9uLmdpdGh1Yi5pbzo0NDMiLCJmZWF0dXJlIjoiRXhwZXJpbWVudGFsSXNJbnB1dFBlbmRpbmciLCJleHBpcnkiOjE1NTk1OTcwMjl9" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100vh;
+        display: grid;
+        align-items: center;
+        justify-items: center;
+        overscroll-behavior: none;
+      }
+      #canvas {
+        border: 1px solid black;
+        touch-action: none;
+      }
+      #caption {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+      }
+    </style>
   </head>
   <body>
-    <p>
-        This is an interactive
-        <a href="https://en.wikipedia.org/wiki/Mandelbrot_set"
-          >Mandelbrot set</a
-        >
-        viewer. Click and drag to pan. Zoom with the mouse wheel.
-    </p>
-    <figure>
-      <figcaption>
-        GLSL renderer. Fastest. 32-bit float precision. It pixelates at around 1+e5 zoom.
-      </figcaption>
-      <canvas id="canvas" width="400" height="400" style="border: 1px solid black"></canvas>
-      <br>
+    <canvas id="canvas" width="375" height="375"></canvas>
+
+    <div id="caption">
       <output id="ms2"></output>ms,
       <output id="scale2"></output> zoom,
       <output id="output2"></output> iterations
-    </figure>
+    </div>
 
     <script src="src/index.js"></script>
   </body>

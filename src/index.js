@@ -55,30 +55,42 @@ canvas.addEventListener("wheel", event => {
   draw2();
 });
 
+let pointerId = null;
+let secondPointerId = null;
 let prevMouseXY = null;
-let isMouseDown = false;
 
-canvas.addEventListener(
-  "mousemove",
-  debounce(event => {
-    event.preventDefault();
-    document.getElementById("output2").value = evalPoint(event.offsetX, event.offsetY, bounds, {WIDTH, HEIGHT}).toFixed(2);
-    if (isMouseDown) {
-      if (prevMouseXY) {
-        bounds = pan(event.offsetX, event.offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
-      }
-      prevMouseXY = [event.offsetX, event.offsetY];
-      draw2();
-    }
-  }),
-  16
-);
-
-canvas.addEventListener("mousedown", event => {
-  isMouseDown = true;
+canvas.addEventListener("pointerdown", event => {
+  if (pointerId === null) {
+    pointerId = event.pointerId;
+    canvas.setPointerCapture(event.pointerId);
+  } else if (secondPointerId === null) {
+    secondPointerId = event.pointerId;
+    canvas.setPointerCapture(event.pointerId);
+  }
 });
 
-document.addEventListener("mouseup", event => {
-  isMouseDown = false;
-  prevMouseXY = null;
+canvas.addEventListener(
+  "pointermove",
+  event => {
+    if (event.pointerId === pointerId) {
+      event.preventDefault();
+      const offsetX = event.clientX - canvas.offsetLeft;
+      const offsetY = event.clientY - canvas.offsetTop;
+      document.getElementById("output2").value = evalPoint(offsetX, offsetY, bounds, {WIDTH, HEIGHT}).toFixed(2);
+      if (prevMouseXY) {  
+        bounds = pan(offsetX, offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
+      }
+      prevMouseXY = [offsetX, offsetY];
+      draw2();
+    }
+  },
+);
+
+canvas.addEventListener("pointerup", event => {
+  if (event.pointerId === pointerId) {
+    pointerId = null;
+    prevMouseXY = null;
+  } else if (event.pointerId === secondPointerId) {
+    secondPointerId = null;
+  }
 });
