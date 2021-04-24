@@ -1,6 +1,6 @@
 import { drawGL } from "./shader.js"
-import { debounce } from "./utils/debounce.js"
 import { zoom } from "./utils/zoom.js"
+import { twoFingerZoom, twoFingerZoomScale } from "./utils/twoFingerZoom.js"
 import { evalPoint } from "./utils/evalPoint.js"
 import { pan } from './utils/pan.js'
 
@@ -45,7 +45,6 @@ draw2();
 canvas.addEventListener("wheel", event => {
   event.preventDefault();
 
-  // compute scale - redundant but needed so we can print the value
   const gHEIGHT = bounds[1].i - bounds[0].i;
   const scale = (2 / gHEIGHT);
   if (!(scale > 1.0e+5 && event.deltaY < 0)) {
@@ -58,6 +57,7 @@ canvas.addEventListener("wheel", event => {
 let pointerId = null;
 let secondPointerId = null;
 let prevMouseXY = null;
+let secondPrevMouseXY = null;
 
 canvas.addEventListener("pointerdown", event => {
   if (pointerId === null) {
@@ -82,6 +82,20 @@ canvas.addEventListener(
       }
       prevMouseXY = [offsetX, offsetY];
       draw2();
+    } else if (event.pointerId === secondPointerId) {
+      event.preventDefault();
+      const offsetX = event.clientX - canvas.offsetLeft;
+      const offsetY = event.clientY - canvas.offsetTop;
+      if (secondPrevMouseXY) {
+        const gHEIGHT = bounds[1].i - bounds[0].i;
+        const scale = (2 / gHEIGHT);
+        const delta = twoFingerZoomScale(prevMouseXY[0], prevMouseXY[1], offsetX, offsetY, secondPrevMouseXY[0], secondPrevMouseXY[1]);
+        if (!(scale > 1.0e+5 && delta < 1)) {
+          bounds = twoFingerZoom(prevMouseXY[0], prevMouseXY[1], delta, bounds, {WIDTH, HEIGHT})
+        }
+      }
+      secondPrevMouseXY = [offsetX, offsetY];
+      draw2();
     }
   },
 );
@@ -92,5 +106,6 @@ canvas.addEventListener("pointerup", event => {
     prevMouseXY = null;
   } else if (event.pointerId === secondPointerId) {
     secondPointerId = null;
+    secondPrevMouseXY = null;
   }
 });

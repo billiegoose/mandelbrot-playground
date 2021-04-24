@@ -1,7 +1,6 @@
 import { add, mult } from './complex.js'
 import { lerp2d } from './lerp2d.js'
 
-
 export const zoom = (x, y, delta, bounds, { WIDTH, HEIGHT }) => {
   const c = lerp2d(x, y, bounds, { WIDTH, HEIGHT});
   const negc = mult(c, -1);
