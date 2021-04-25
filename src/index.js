@@ -1,7 +1,6 @@
 import { drawGL } from "./shader.js"
 import { zoom } from "./utils/zoom.js"
 import { twoFingerZoom, twoFingerZoomScale } from "./utils/twoFingerZoom.js"
-import { evalPoint } from "./utils/evalPoint.js"
 import { pan } from './utils/pan.js'
 
 const canvas = document.getElementById("canvas");
@@ -21,9 +20,6 @@ let bounds = [{"r":0.23623027407123423,"i":-0.52110955067061},{"r":0.23656280789
 // let bounds = [{"r":-0.9324446099555789,"i":-0.3096720420214256},{"r":-0.9319455324854043,"i":-0.3091729645512239}]
 
 const draw2 = () => {
-  let start = performance.now();
-
-  // console.log(JSON.stringify(bounds));
   drawGL(
     WIDTH,
     HEIGHT,
@@ -32,12 +28,9 @@ const draw2 = () => {
     bounds[1].r,
     bounds[1].i
   );
-
-  let finish = performance.now();
-  document.getElementById("ms2").value = Math.floor(finish - start);
   // compute scale - redundant but needed so we can print the value
   const gHEIGHT = bounds[1].i - bounds[0].i;
-  document.getElementById('scale2').value = (2 / gHEIGHT).toExponential(2);
+  document.getElementById('zoom').value = (2 / gHEIGHT).toExponential(2);
 };
 
 draw2();
@@ -76,7 +69,6 @@ canvas.addEventListener(
       event.preventDefault();
       const offsetX = event.clientX - canvas.offsetLeft;
       const offsetY = event.clientY - canvas.offsetTop;
-      document.getElementById("output2").value = evalPoint(offsetX, offsetY, bounds, {WIDTH, HEIGHT}).toFixed(2);
       if (prevMouseXY) {  
         bounds = pan(offsetX, offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
       }
