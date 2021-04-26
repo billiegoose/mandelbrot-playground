@@ -51,10 +51,6 @@ canvas.addEventListener("wheel", event => {
 });
 
 let pointers = {}; // {x:number, y:number}
-let pointerId = null;
-let secondPointerId = null;
-let prevMouseXY = null;
-let secondPrevMouseXY = null;
 
 canvas.addEventListener("pointerdown", event => {
   const offsetX = event.clientX - canvas.offsetLeft;
@@ -64,14 +60,6 @@ canvas.addEventListener("pointerdown", event => {
     y: offsetY,
   };
   canvas.setPointerCapture(event.pointerId);
-
-  // if (pointerId === null) {
-  //   pointerId = event.pointerId;
-  //   canvas.setPointerCapture(event.pointerId);
-  // } else if (secondPointerId === null) {
-  //   secondPointerId = event.pointerId;
-  //   canvas.setPointerCapture(event.pointerId);
-  // }
 });
 
 canvas.addEventListener(
@@ -110,41 +98,9 @@ canvas.addEventListener(
     }
 
     draw2();
-
-    // if (event.pointerId === pointerId) {
-    //   event.preventDefault();
-    //   const offsetX = event.clientX - canvas.offsetLeft;
-    //   const offsetY = event.clientY - canvas.offsetTop;
-    //   if (prevMouseXY) {  
-    //     bounds = pan(offsetX, offsetY, prevMouseXY[0], prevMouseXY[1], bounds, {WIDTH, HEIGHT})
-    //   }
-    //   prevMouseXY = [offsetX, offsetY];
-    //   draw2();
-    // } else if (event.pointerId === secondPointerId) {
-    //   event.preventDefault();
-    //   const offsetX = event.clientX - canvas.offsetLeft;
-    //   const offsetY = event.clientY - canvas.offsetTop;
-    //   if (secondPrevMouseXY) {
-    //     const gHEIGHT = bounds[1].i - bounds[0].i;
-    //     const scale = (2 / gHEIGHT);
-    //     const delta = twoFingerZoomScale(prevMouseXY[0], prevMouseXY[1], offsetX, offsetY, secondPrevMouseXY[0], secondPrevMouseXY[1]);
-    //     if (!(scale > 1.0e+5 && delta < 1)) {
-    //       bounds = twoFingerZoom(prevMouseXY[0], prevMouseXY[1], delta, bounds, {WIDTH, HEIGHT})
-    //     }
-    //   }
-    //   secondPrevMouseXY = [offsetX, offsetY];
-    //   draw2();
-    // }
   },
 );
 
 canvas.addEventListener("pointerup", event => {
   delete pointers[event.pointerId];
-  // if (event.pointerId === pointerId) {
-  //   pointerId = null;
-  //   prevMouseXY = null;
-  // } else if (event.pointerId === secondPointerId) {
-  //   secondPointerId = null;
-  //   secondPrevMouseXY = null;
-  // }
 });
