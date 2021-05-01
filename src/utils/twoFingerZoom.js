@@ -1,5 +1,7 @@
 import { lerp2d} from './lerp2d.js'
 import { add, mult } from './complex'
+import { bounds as computeBounds } from './bounds.js'
+import { clampMagnification } from './clampMagnification.js'
 
 export const twoFingerZoomScale = (ox, oy, x, y, x0, y0) => {
   const d0 = Math.sqrt((x0 - ox) ** 2 + (y0 - oy) ** 2);
@@ -9,18 +11,20 @@ export const twoFingerZoomScale = (ox, oy, x, y, x0, y0) => {
   return scale;
 }
 
-export const twoFingerZoom = (ox, oy, scale, bounds, {WIDTH, HEIGHT}) => {
+export const twoFingerZoom = (ox, oy, scale, center, magnification, {WIDTH, HEIGHT}) => {
+  const bounds = computeBounds(center, magnification, WIDTH / HEIGHT);
   const c = lerp2d(ox, oy, bounds, { WIDTH, HEIGHT});
   const negc = mult(c, -1);
   // Compute new bounds
   // 1. offset
-  bounds[0] = add(bounds[0], negc);
-  bounds[1] = add(bounds[1], negc);
+  center = add(center, negc);
   // 2. scale
-  bounds[0] = mult(bounds[0], scale);
-  bounds[1] = mult(bounds[1], scale);
+  const oldMagnification = magnification;
+  magnification /= scale;
+  magnification = clampMagnification(magnification);
+  const clampedScale = oldMagnification / magnification;
+  center = mult(center, clampedScale);
   // 3. onset
-  bounds[0] = add(bounds[0], c);
-  bounds[1] = add(bounds[1], c);
-  return bounds;
+  center = add(center, c);
+  return [center, magnification];
 }
