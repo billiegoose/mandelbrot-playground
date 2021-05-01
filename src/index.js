@@ -46,6 +46,7 @@ const draw2 = () => {
   );
   // compute magnification - redundant but needed so we can print the value
   document.getElementById('zoom').value = (magnification).toExponential(2);
+  document.getElementById('center').value = `(${center.r.toFixed(6)}, ${center.i.toFixed(6)})`
 };
 
 draw2();
