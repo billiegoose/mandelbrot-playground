@@ -24,6 +24,13 @@
         position: absolute;
         bottom: 0;
         left: 0;
+        width: 100vw;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-family: sans-serif;
+        font-weight: bold;
+        background: rgba(255,255,255,0.5);
       }
     </style>
   </head>
@@ -31,9 +38,9 @@
     <canvas id="canvas" width="375" height="375"></canvas>
 
     <div id="caption">
-      <output id="zoom"></output> zoom,
-      <output id="center"></output> center,
-      <button id="save">Save</button>
+      <div><output id="zoom"></output> zoom</div>
+      <div><output id="center"></output> center</div>
+      <button id="save">Download</button>
     </div>
 
     <script src="src/index.js"></script>

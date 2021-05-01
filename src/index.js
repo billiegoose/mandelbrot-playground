@@ -33,15 +33,14 @@ console.log(JSON.stringify({center, magnification}))
 let drawGL, WIDTH, HEIGHT
 
 function setupSize () {
-  const biggest = Math.min(document.body.clientWidth, document.body.clientHeight);
+  WIDTH = document.body.clientWidth;
+  HEIGHT = document.body.clientHeight;
 
-  canvas.setAttribute('width', biggest);
-  canvas.setAttribute('height', biggest);
-  canvas.style.setProperty('width', biggest + 'px');
-  canvas.style.setProperty('height', biggest + 'px');
+  canvas.setAttribute('width', WIDTH);
+  canvas.setAttribute('height', HEIGHT);
+  canvas.style.setProperty('width', WIDTH + 'px');
+  canvas.style.setProperty('height', HEIGHT + 'px');
 
-  WIDTH = canvas.clientWidth;
-  HEIGHT = canvas.clientHeight;
   console.log(WIDTH, HEIGHT);
   drawGL = init();
   draw2();
