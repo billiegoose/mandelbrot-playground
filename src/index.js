@@ -1,4 +1,4 @@
-import { drawGL } from "./shader.js"
+import { init } from "./shader.js"
 import { zoom } from "./utils/zoom.js"
 import { twoFingerZoom } from "./utils/twoFingerZoom.js"
 import { pan } from './utils/pan.js'
@@ -7,10 +7,6 @@ import { meanDistanceFromPoint } from './utils/meanDistanceFromPoint.js'
 import { bounds as computeBounds } from './utils/bounds.js'
 
 const canvas = document.getElementById("canvas");
-
-const WIDTH = canvas.clientWidth;
-const HEIGHT = canvas.clientHeight;
-console.log(WIDTH, HEIGHT);
 
 // let bounds = [{r: -2, i: -1}, {r: 0, i: 1}];
 // let bounds = [
@@ -34,7 +30,28 @@ let { center, magnification } = {"center":{"r":0.23639654098268192,"i":-0.520943
 
 console.log(JSON.stringify({center, magnification}))
 
-const draw2 = () => {
+let drawGL, WIDTH, HEIGHT
+
+function setupSize () {
+  const biggest = Math.min(document.body.clientWidth, document.body.clientHeight);
+
+  canvas.setAttribute('width', biggest);
+  canvas.setAttribute('height', biggest);
+  canvas.style.setProperty('width', biggest + 'px');
+  canvas.style.setProperty('height', biggest + 'px');
+
+  WIDTH = canvas.clientWidth;
+  HEIGHT = canvas.clientHeight;
+  console.log(WIDTH, HEIGHT);
+  drawGL = init();
+  draw2();
+}
+
+setupSize();
+
+window.addEventListener('resize', setupSize);
+
+function draw2 () {
   const bs = computeBounds(center, magnification, WIDTH / HEIGHT);
   drawGL(
     WIDTH,
@@ -47,9 +64,7 @@ const draw2 = () => {
   // compute magnification - redundant but needed so we can print the value
   document.getElementById('zoom').value = (magnification).toExponential(2);
   document.getElementById('center').value = `(${center.r.toFixed(6)}, ${center.i.toFixed(6)})`
-};
-
-draw2();
+}
 
 canvas.addEventListener("wheel", event => {
   event.preventDefault();
@@ -110,3 +125,43 @@ canvas.addEventListener(
 canvas.addEventListener("pointerup", event => {
   delete pointers[event.pointerId];
 });
+
+document.getElementById('save').addEventListener('pointerdown', () => {
+  // const data = canvas.toDataURL('image/png');
+  // console.log(data);
+  // window.open(data, '_blank');
+  canvas.toBlob((blob) => {
+    const filename = `mandelbrot_${magnification.toFixed(8)}z_${center.r.toFixed(8)}r_${center.i.toFixed(8)}i.png`
+    downloadBlob(blob, filename);
+  }, "image/png");
+});
+
+// https://dev.to/nombrekeff/download-file-from-blob-21ho
+function downloadBlob(blob, name = 'file.txt') {
+  // Convert your blob into a Blob URL (a special url that points to an object in the browser's memory)
+  const blobUrl = URL.createObjectURL(blob);
+
+  // Create a link element
+  const link = document.createElement("a");
+
+  // Set link's href to point to the Blob URL
+  link.href = blobUrl;
+  link.download = name;
+
+  // Append link to the body
+  document.body.appendChild(link);
+
+  // Dispatch click event on the link
+  // This is necessary as link.click() does not work on the latest firefox
+  link.dispatchEvent(
+    new MouseEvent('click', { 
+      bubbles: true, 
+      cancelable: true, 
+      view: window 
+    })
+  );
+
+  // Remove link from body
+  document.body.removeChild(link);
+  window.URL.revokeObjectURL(blobUrl);
+}
