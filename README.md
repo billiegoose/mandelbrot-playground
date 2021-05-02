@@ -5,4 +5,3 @@ This is an interactive Mandelbrot set viewer! Supported features:
 - zooming (scroll wheel or pinch zoom)
 - toggle fullscreen (double click or double tap)
 - download current image as PNG (click/tap "camera" icon)
-- share current position and zoom with a friend! (click/tap "external link" icon)

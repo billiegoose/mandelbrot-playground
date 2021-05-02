@@ -150,35 +150,11 @@ function meanDistanceFromPoint(points, mean) {
   return distance / n;
 }
 
-// Really sad that there still isn't a native JS API for this
-// https://dev.to/nombrekeff/download-file-from-blob-21ho
 function downloadBlob(blob, name = 'file.txt') {
   // Convert your blob into a Blob URL (a special url that points to an object in the browser's memory)
   const blobUrl = URL.createObjectURL(blob);
 
-  // Create a link element
-  const link = document.createElement("a");
-
-  // Set link's href to point to the Blob URL
-  link.href = blobUrl;
-  link.download = name;
-
-  // Append link to the body
-  document.body.appendChild(link);
-
-  // Dispatch click event on the link
-  // This is necessary as link.click() does not work on the latest firefox
-  link.dispatchEvent(
-    new MouseEvent('click', { 
-      bubbles: true, 
-      cancelable: true, 
-      view: window 
-    })
-  );
-
-  // Remove link from body
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(blobUrl);
+  window.open(blobUrl, '_blank');
 }
 
 // MAIN
@@ -287,6 +263,10 @@ function drawGL(
   const gTOP = lowerBoundi;
   const scaleY = gHEIGHT;
 
+  gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+
   var resolutionLocation = gl.getUniformLocation(program, "resolution");
   gl.uniform2f(resolutionLocation, canvasWidth, canvasHeight);
 
@@ -363,6 +343,7 @@ function setupSize () {
   canvas.height = HEIGHT;
 
   draw();
+  updateSaveLink();
 }
 
 setupSize();
@@ -383,6 +364,13 @@ function draw () {
   // compute magnification - redundant but needed so we can print the value
   document.getElementById('zoom').innerHTML = (magnification).toExponential(2).replace(/e((\+|\-)\d)/, '×10<sup>$1</sup>').replace('+', '');
   document.getElementById('center').value = `${center.r.toFixed(6)} ${center.i < 0 ? '-' : '+'} ${Math.abs(center.i).toFixed(6)}𝑖`
+}
+
+function updateSaveLink() {
+  const imageLink = document.getElementById('save-link');
+  URL.revokeObjectURL(imageLink.href);
+  draw();
+  canvas.toBlob(blob => imageLink.href = URL.createObjectURL(blob), "image/png");
 }
 
 canvas.addEventListener("wheel", event => {
@@ -440,6 +428,7 @@ canvas.addEventListener(
 
 canvas.addEventListener("pointerup", event => {
   delete pointers[event.pointerId];
+  updateSaveLink();
 });
 
 canvas.addEventListener('dblclick', () => {
@@ -449,33 +438,5 @@ canvas.addEventListener('dblclick', () => {
     document.exitFullscreen();
   } else {
     canvas.requestFullscreen();
-  }
-});
-
-document.getElementById('save').addEventListener('click', () => {
-  draw();
-  canvas.toBlob((blob) => {
-    const filename = `mandelbrot_${magnification.toFixed(8)}z_${center.r.toFixed(8)}r_${center.i.toFixed(8)}i.png`
-    downloadBlob(blob, filename);
-  }, "image/png");
-});
-
-document.getElementById('share').addEventListener('click', () => {
-  const query = new URLSearchParams({
-    m: magnification,
-    r: center.r,
-    i: center.i,
-  })
-  const url = new URL(location);
-  url.search = `?${query}`;
-
-  if (navigator.share) {
-    navigator.share({
-      title: 'Mandelbrot Link',
-      text: `Check out this sweet spot on the Mandelbrot set!\n${url}`,
-      url,
-    })
-  } else {
-    window.open(url, '_blank');
   }
 });
