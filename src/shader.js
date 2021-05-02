@@ -2,9 +2,9 @@ export function init() {
   // TODO: Learn how I can make the shader interactive.
   const vertexShaderSource = `
   #version 100
+  attribute vec2 position;
   void main() {
-  gl_Position = vec4(0.0, 0.0, 0.0, 1.0);
-  gl_PointSize = 2400.0;
+  gl_Position = vec4(position.x, position.y, 0.0, 1.0);
   }`
 
   const fragmentShaderSource = `
@@ -71,6 +71,16 @@ export function init() {
   let fragmentShader = compileShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
   let program = buildProgram(gl, vertexShader, fragmentShader);
 
+  /* create a vertex buffer for a full-screen triangle */
+  var buffer = gl.createBuffer(gl.ARRAY_BUFFER);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+
+  /* set up the position attribute */
+  var a_position = gl.getAttribLocation(program, "position");
+  gl.enableVertexAttribArray(a_position);
+  gl.vertexAttribPointer(a_position, 2, gl.FLOAT, false, 0, 0);
+
   return function drawGL(
     canvasWidth,
     canvasHeight,
@@ -99,13 +109,10 @@ export function init() {
     gl.uniform1f(a_scaleY, scaleY);
     var a_gTOP = gl.getUniformLocation(program, "gTOP");
     gl.uniform1f(a_gTOP, gTOP);
-  
-    gl.enableVertexAttribArray(0);
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.vertexAttribPointer(0, 1, gl.FLOAT, false, 0, 0);
-  
-    gl.drawArrays(gl.POINTS, 0, 1);
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
   }  
 }
 

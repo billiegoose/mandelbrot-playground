@@ -33,22 +33,20 @@ console.log(JSON.stringify({center, magnification}))
 let drawGL, WIDTH, HEIGHT
 
 function setupSize () {
-  WIDTH = document.body.clientWidth;
-  HEIGHT = document.body.clientHeight;
+  WIDTH = canvas.clientWidth;
+  HEIGHT = canvas.clientHeight;
 
-  canvas.setAttribute('width', WIDTH);
-  canvas.setAttribute('height', HEIGHT);
-  canvas.style.setProperty('width', WIDTH + 'px');
-  canvas.style.setProperty('height', HEIGHT + 'px');
+  canvas.width = WIDTH;
+  canvas.height = HEIGHT;
 
-  console.log(WIDTH, HEIGHT);
   drawGL = init();
   draw2();
 }
 
 setupSize();
 
-window.addEventListener('resize', setupSize);
+const observer = new ResizeObserver(setupSize);
+observer.observe(canvas, { box: 'content-box' });
 
 function draw2 () {
   const bs = computeBounds(center, magnification, WIDTH / HEIGHT);
