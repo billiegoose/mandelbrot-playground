@@ -125,7 +125,7 @@ function cleanup(gl, buffer, program) {
 function getContext (canvas) {
   canvas.width = canvas.clientWidth;
   canvas.height = canvas.clientHeight;
-  return canvas.getContext("webgl", { preserveDrawingBuffer: true });
+  return canvas.getContext("webgl");
 }
 
 function compileShader (gl, source, type) {

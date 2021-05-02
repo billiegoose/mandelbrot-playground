@@ -6,6 +6,7 @@ import { pan } from './utils/pan.js'
 import { mean2d } from './utils/mean2d.js'
 import { meanDistanceFromPoint } from './utils/meanDistanceFromPoint.js'
 import { bounds as computeBounds } from './utils/bounds.js'
+import { downloadBlob } from './utils/downloadBlob.js'
 
 const canvas = document.getElementById("canvas");
 
@@ -124,45 +125,13 @@ canvas.addEventListener("pointerup", event => {
   delete pointers[event.pointerId];
 });
 
-document.getElementById('save').addEventListener('pointerdown', () => {
-  // const data = canvas.toDataURL('image/png');
-  // console.log(data);
-  // window.open(data, '_blank');
+document.getElementById('save').addEventListener('click', () => {
+  draw2();
   canvas.toBlob((blob) => {
     const filename = `mandelbrot_${magnification.toFixed(8)}z_${center.r.toFixed(8)}r_${center.i.toFixed(8)}i.png`
     downloadBlob(blob, filename);
   }, "image/png");
 });
-
-// https://dev.to/nombrekeff/download-file-from-blob-21ho
-function downloadBlob(blob, name = 'file.txt') {
-  // Convert your blob into a Blob URL (a special url that points to an object in the browser's memory)
-  const blobUrl = URL.createObjectURL(blob);
-
-  // Create a link element
-  const link = document.createElement("a");
-
-  // Set link's href to point to the Blob URL
-  link.href = blobUrl;
-  link.download = name;
-
-  // Append link to the body
-  document.body.appendChild(link);
-
-  // Dispatch click event on the link
-  // This is necessary as link.click() does not work on the latest firefox
-  link.dispatchEvent(
-    new MouseEvent('click', { 
-      bubbles: true, 
-      cancelable: true, 
-      view: window 
-    })
-  );
-
-  // Remove link from body
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(blobUrl);
-}
 
 document.addEventListener('dblclick', () => {
   if (!document.fullscreenEnabled) return;
