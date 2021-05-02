@@ -10,27 +10,28 @@ import { downloadBlob } from './utils/downloadBlob.js'
 
 const canvas = document.getElementById("canvas");
 
-// let bounds = [{r: -2, i: -1}, {r: 0, i: 1}];
-// let bounds = [
-//   { r: -1.0239051845552098, i: -0.36249787751053836 },
-//   { r: -1.0239051835666346, i: -0.362497876851488 }
-// ];
-// let bounds = [{"r":0.2361513689220573,"i":-0.5210970613723728},{"r":0.23662026741217732,"i":-0.5207844623789595}]
-let bounds = [{"r":0.23623027407123423,"i":-0.52110955067061},{"r":0.23656280789412965,"i":-0.5207770168477384}]
-// let bounds = [{"r":-0.9324446099555789,"i":-0.3096720420214256},{"r":-0.9319455324854043,"i":-0.3091729645512239}]
-// let bounds = [{"r":-0.6530943327215649,"i":-0.482019631958442},{"r":-0.6530775111828098,"i":-0.482002810419688}]
+let startingPoints = [
+  {"center":{"r":-1.0239051840609221,"i":-0.3624978771810132},"magnification":37878.30727990172},
+  {"center":{"r":0.23639654098268192,"i":-0.5209432837591742},"magnification":6014.425789017409},
+  {"center":{"r":-0.9321950712204916,"i":-0.30942250328632476},"magnification":4007.393880536437},
+  {"center":{"r":-0.6222253796499786,"i":-0.4685170012224668},"magnification":823.6171727317933},
+  {"center":{"r":0.20266332778338675,"i":-0.5610397851311674},"magnification":771.5575389485568},
+  {"center":{"r":0.3606476653154053,"i":-0.5872207249038313},"magnification":312.04201503197106},
+  {"center":{"r":0.42450104979379727,"i":0.2075254504178545},"magnification":4440.9884561736035},
+];
 
-// let center = {
-//   r: (bounds[0].r + bounds[1].r) / 2,
-//   i: (bounds[0].i + bounds[1].i) / 2,
-// };
+const pick = Math.floor(Math.random() * startingPoints.length);
+let { center, magnification } = startingPoints[pick];
 
-// let magnification = 2 / (bounds[1].i - bounds[0].i);
-
-// let { center, magnification } = {"center":{"r":-0.5392733540563709,"i":-0.6638421653545289},"magnification":101205.15090285588}
-let { center, magnification } = {"center":{"r":0.23639654098268192,"i":-0.5209432837591742},"magnification":6014.425789017409}
-
-console.log(JSON.stringify({center, magnification}))
+if (location.search) {
+  const query = new URLSearchParams(location.search);
+  const m = query.get('m');
+  const r = query.get('r');
+  const i = query.get('i');
+  if (m) magnification = parseFloat(m);
+  if (r) center.r = parseFloat(r);
+  if (i) center.i = parseFloat(i);
+}
 
 let drawGL, WIDTH, HEIGHT
 
@@ -61,20 +62,17 @@ function draw2 () {
     bs[1].i,
   );
   // compute magnification - redundant but needed so we can print the value
-  document.getElementById('zoom').value = (magnification).toExponential(2);
-  document.getElementById('center').value = `(${center.r.toFixed(6)}, ${center.i.toFixed(6)})`
+  document.getElementById('zoom').innerHTML = (magnification).toExponential(2).replace(/e((\+|\-)\d)/, '×10<sup>$1</sup>').replace('+', '');
+  document.getElementById('center').value = `${center.r.toFixed(6)} ${center.i < 0 ? '-' : '+'} ${Math.abs(center.i).toFixed(6)}𝑖`
 }
 
 canvas.addEventListener("wheel", event => {
   event.preventDefault();
-
   [center, magnification] = zoom(event.offsetX, event.offsetY, event.deltaY, center, magnification, {WIDTH, HEIGHT})
-
-  console.log(JSON.stringify({center, magnification}));
   draw2();
 });
 
-let pointers = {}; // {x:number, y:number}
+let pointers = {}; // {[id string]: {x:number, y:number}}
 
 canvas.addEventListener("pointerdown", event => {
   const offsetX = event.clientX - canvas.offsetLeft;
@@ -125,6 +123,17 @@ canvas.addEventListener("pointerup", event => {
   delete pointers[event.pointerId];
 });
 
+function shareURL() {
+  const query = new URLSearchParams({
+    m: magnification,
+    r: center.r,
+    i: center.i,
+  })
+  const url = new URL(location);
+  url.search = `?${query}`;
+  return url;
+}
+
 document.getElementById('save').addEventListener('click', () => {
   draw2();
   canvas.toBlob((blob) => {
@@ -140,5 +149,17 @@ document.addEventListener('dblclick', () => {
     document.exitFullscreen();
   } else {
     canvas.requestFullscreen();
+  }
+});
+
+document.getElementById('share').addEventListener('click', () => {
+  if (navigator.share) {
+    navigator.share({
+      title: 'Mandelbrot Link',
+      text: 'Check out this sweet spot on the Mandelbrot set!',
+      url: shareURL()
+    })
+  } else {
+    window.open(shareURL(), '_blank');
   }
 });

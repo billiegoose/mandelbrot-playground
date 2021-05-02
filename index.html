@@ -19,21 +19,31 @@
       #canvas {
         /* border: 1px solid black; */
         touch-action: none;
+        box-sizing: border-box;
         width: 100vw;
         height: 100vh;
-        box-sizing: border-box;
       }
       #caption {
         position: absolute;
+        box-sizing: border-box;
         top: 0;
         left: 0;
         width: 100vw;
         display: flex;
+        padding-left: 10px;
+        padding-right: 10px;
         justify-content: space-between;
         align-items: center;
         font-family: sans-serif;
         font-weight: bold;
         background: rgba(255,255,255,0.5);
+      }
+      #caption .icons {
+        display: flex;
+        align-items: center;
+      }
+      #caption .icons svg {
+        margin-left: 8px;
       }
     </style>
   </head>
@@ -42,8 +52,17 @@
 
     <div id="caption">
       <div><output id="zoom"></output> zoom</div>
-      <div><output id="center"></output> center</div>
-      <button id="save">Screenshot</button>
+      <div><output id="center"></output></div>
+      <div class="icons">
+        <!-- icons from https://heroicons.com/ -->
+        <svg role="button" id="share" width="20" height="20" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+        </svg>
+        <svg role="button" id="save" width="20" height="20" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
     </div>
 
     <script src="src/index.js"></script>
