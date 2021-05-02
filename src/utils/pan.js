@@ -1,6 +1,6 @@
 import { lerp2d} from './lerp2d.js'
-import { add, mult } from './complex'
-import { bounds as computeBounds } from './bounds'
+import { add, mult } from './complex.js'
+import { bounds as computeBounds } from './bounds.js'
 import { clampCenter } from './clampCenter.js';
 
 export const pan = (x, y, x0, y0, center, magnification, {WIDTH, HEIGHT}) => {

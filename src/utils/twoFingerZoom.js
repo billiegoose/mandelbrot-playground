@@ -1,5 +1,5 @@
 import { lerp2d} from './lerp2d.js'
-import { add, mult } from './complex'
+import { add, mult } from './complex.js'
 import { bounds as computeBounds } from './bounds.js'
 import { clampMagnification } from './clampMagnification.js'
 

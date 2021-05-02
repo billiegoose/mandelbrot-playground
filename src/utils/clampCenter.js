@@ -1,4 +1,4 @@
-import { add, mult } from "./complex";
+import { add, mult } from "./complex.js";
 
 const RADIUS = 1.5;
 const CENTER = {r: -0.5, i: 0};
