@@ -1,5 +1,4 @@
 export function init() {
-  // TODO: Learn how I can make the shader interactive.
   const vertexShaderSource = `
   #version 100
   attribute vec2 position;
