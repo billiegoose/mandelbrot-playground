@@ -1,3 +1,4 @@
+import './polyfills/fullscreen.js'
 import { init } from "./shader.js"
 import { zoom } from "./utils/zoom.js"
 import { twoFingerZoom } from "./utils/twoFingerZoom.js"
@@ -162,3 +163,13 @@ function downloadBlob(blob, name = 'file.txt') {
   document.body.removeChild(link);
   window.URL.revokeObjectURL(blobUrl);
 }
+
+document.addEventListener('dblclick', () => {
+  if (!document.fullscreenEnabled) return;
+
+  if (document.fullscreenElement) {
+    document.exitFullscreen();
+  } else {
+    canvas.requestFullscreen();
+  }
+});
